@@ -1,24 +1,3 @@
-'''
-Copyright (C) 2018 Ares Deveaux
-
-
-Created by Ares Deveaux
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
-
-
 import bpy
 
 from . import key_utils, cur_utils, utils
@@ -65,18 +44,6 @@ def update_clone_move(self, context):
     objects = context.selected_objects
 
     cur_utils.move_clone(objects)
-
-    return
-
-
-def update_clone(self, context):
-
-    objects = context.selected_objects
-    animaide = context.scene.animaide
-    cycle_before = animaide.clone_data.cycle_before
-    cycle_after = animaide.clone_data.cycle_after
-
-    cur_utils.add_clone(objects, cycle_before, cycle_after)
 
     return
 
@@ -239,47 +206,6 @@ class AnimAideScene(PropertyGroup):
     slider_slots: CollectionProperty(type=AnimSlider)
 
 
-class myPreferences(AddonPreferences):
-    # this must match the addon name, use '__package__'
-    # when defining this in a submodule of a python package.
-    bl_idname = __package__
-
-    view_3d: BoolProperty(
-        name="3D View",
-        default=True,
-    )
-
-    sliders: BoolProperty(
-        name="Sliders",
-        default=True,
-    )
-
-    magnet: BoolProperty(
-        name="Magnet",
-        default=True,
-    )
-
-    def draw(self, context):
-        layout = self.layout
-        # layout.label(text="Choose the area where the sliders will be:")
-        layout.prop(self, "sliders", text="Use Sliders")
-        layout.prop(self, "anim_transform", text="Use AnimTransform")
-        layout.prop(self, "view_3d", text="Side panel in the '3D View' instead of the 'Graph Editor'")
-
-
-def space_type_pref():
-
-    preferences = bpy.context.preferences
-    pref = preferences.addons[__package__].preferences
-
-    if pref.view_3d:
-        space_type = 'VIEW_3D'
-    else:
-        space_type = 'GRAPH_EDITOR'
-
-    return space_type
-
-
 def set_props():
     # to be used when registering
 
@@ -294,7 +220,6 @@ def del_props():
 
 
 classes = (
-    # props.myPreferences,
     AnimAideAnimTransform,
     AnimAideClone,
     AnimSlider,
