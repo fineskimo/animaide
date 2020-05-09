@@ -1,24 +1,3 @@
-'''
-Copyright (C) 2018 Ares Deveaux
-
-
-Created by Ares Deveaux
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
-
-
 import bpy
 
 import random as rd
@@ -38,11 +17,26 @@ min_value = None
 max_value = None
 
 
+def s_div(n, d):
+    return n / d if d else 0
+
+
+def update_keyframe_points(context):
+    """# The select operator(s) are bugged, and can fail to update selected keys, so"""
+    area = context.area.type
+    if area != 'GRAPH_EDITOR':
+        context.area.type = 'GRAPH_EDITOR'
+
+    bpy.ops.transform.transform()
+
+    if area != 'GRAPH_EDITOR':
+        context.area.type = area
+
+
 def ease_to_ease(factor, slope):
     '''
     Transition selected keys from the neighboring ones in an "S" shape manner (ease-in and ease-out simultaneously)
     '''
-
     clamped_factor = utils.clamp(-factor, min_value, max_value)
 
     local_y = right_neighbor['y'] - left_neighbor['y']
@@ -54,10 +48,8 @@ def ease_to_ease(factor, slope):
         lh_delta = k.co.y - k.handle_left.y
         rh_delta = k.co.y - k.handle_right.y
         x = k.co.x - left_neighbor['x']
-        try:
-            key_ratio = 1 / (local_x / x)
-        except:
-            key_ratio = 0
+
+        key_ratio = s_div(1, (s_div(local_x, x)))
 
         clamped_move = utils.clamp(clamped_factor, minimum=key_ratio - 1, maximum=key_ratio)
 
@@ -72,7 +64,6 @@ def ease(factor, slope):
     '''
     Transition selected keys from the neighboring ones in a "C" shape manner (ease-in or ease-out)
     '''
-
     clamped_factor = utils.clamp(factor, min_value, max_value)
 
     local_y = right_neighbor['y'] - left_neighbor['y']
@@ -97,10 +88,8 @@ def ease(factor, slope):
         lh_delta = k.co.y - k.handle_left.y
         rh_delta = k.co.y - k.handle_right.y
         x = k.co.x - left_neighbor['x']
-        try:
-            key_ratio = 1 / (local_x / x)
-        except:
-            key_ratio = 0
+
+        key_ratio = s_div(1, (s_div(local_x, x)))
 
         ease_y = cur_utils.s_curve(key_ratio,
                                    slope=new_slope,
@@ -118,7 +107,6 @@ def blend_neighbor(factor):
     '''
     Blend selected keys to the value of the neighboring left and right keys
     '''
-
     for index in selected_keys:
 
         k = fcurve.keyframe_points[index]
@@ -141,7 +129,6 @@ def blend_frame(factor, left_y_ref, right_y_ref):
     '''
     Blend selected keys to the value of the chosen left and right frames
     '''
-
     for index in selected_keys:
 
         k = fcurve.keyframe_points[index]
@@ -164,7 +151,6 @@ def blend_ease(factor, slope):
     '''
     Blend selected keys to an ease-in or ease-out curve using the neighboring keys
     '''
-
     local_y = right_neighbor['y'] - left_neighbor['y']
     local_x = right_neighbor['x'] - left_neighbor['x']
 
@@ -177,10 +163,9 @@ def blend_ease(factor, slope):
 
         if factor < 0:
             clamped_factor = utils.clamp(1 + factor * 2, min_value, max_value)
-            try:
-                key_ratio = 1 / (local_x / x)
-            except:
-                key_ratio = 0
+
+            key_ratio = s_div(1, (s_div(local_x, x)))
+
             ease_y = cur_utils.s_curve(key_ratio,
                                        slope=1 + (slope),  # self.slope * 2,
                                        width=2,
@@ -189,10 +174,9 @@ def blend_ease(factor, slope):
                                        yshift=0)
         else:
             clamped_factor = utils.clamp(1 - factor * 2, min_value, max_value)
-            try:
-                key_ratio = 1 / (local_x / x)
-            except:
-                key_ratio = 0
+
+            key_ratio = s_div(1, (s_div(local_x, x)))
+
             ease_y = cur_utils.s_curve(key_ratio,
                                        slope=1 + (slope),  # self.slope * 2,
                                        width=2,
@@ -226,7 +210,6 @@ def blend_offset(factor):
     '''
     Blend selected keys to the value of the chosen left and right frames
     '''
-
     clamped_factor = utils.clamp(factor, min_value, max_value)
 
     first_key_index = selected_keys[0]
@@ -254,7 +237,6 @@ def tween(factor):
     '''
     Set lineal relative value of the selected keys in relationship to the neighboring ones
     '''
-
     clamped_factor = utils.clamp(factor, min_value, max_value)
 
     local_y = right_neighbor['y'] - left_neighbor['y']
@@ -275,7 +257,6 @@ def push_pull(factor):
     '''
     Exagerates or decreases the value of the selected keys
     '''
-
     clamped_factor = utils.clamp(factor, min_value, max_value)
 
     for index in selected_keys:
@@ -297,7 +278,6 @@ def smooth(factor):
     '''
     Averages values of selected keys creating a smoother fcurve
     '''
-
     # factor = (self.factor/2) + 0.5
 
     clamped_factor = utils.clamp(factor, min_value, max_value)
@@ -305,7 +285,6 @@ def smooth(factor):
     # print('original: ', original_values[selected_keys[0]]['sy'])
 
     for index in selected_keys:
-
 
         k = fcurve.keyframe_points[index]
         lh_delta = k.co.y - k.handle_left.y
@@ -332,7 +311,6 @@ def time_offset(factor, fcurves):
     '''
     Shift the value of selected keys to the ones of the left or right in the same fcurve
     '''
-
     # factor = (self.factor/2) + 0.5
     animaide = bpy.context.scene.animaide
     cycle_before = animaide.clone.cycle_before
@@ -363,7 +341,6 @@ def noise(factor, fcurves, fcurve_index, phase):
     '''
     Set random values to the selected keys
     '''
-
     # factor = (self.factor/2) + 0.5
     # animaide = bpy.context.scene.animaide
 
@@ -677,7 +654,7 @@ def invoke(self, context, event):
     Common actions used in the "invoke" of the different slider operators
     '''
 
-    # self.animaide.slider.selector = self.slider_type
+    utils.update_keyframe_points(context)
 
     if self.op_context == 'EXEC_DEFAULT':
         return self.execute(context)
@@ -712,7 +689,6 @@ def poll(context):
     '''
     Poll used on all the slider operators
     '''
-
     objects = context.selected_objects
     animaide = context.scene.animaide
     anim_transform_active = animaide.anim_transform.active
