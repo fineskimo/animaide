@@ -1,24 +1,3 @@
-'''
-Copyright (C) 2018 Ares Deveaux
-
-
-Created by Ares Deveaux
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-'''
-
-
 import bpy
 
 
@@ -116,3 +95,15 @@ def toggle(to_toggle, value_a, value_b):
         return value_b
     elif to_toggle == value_b:
         return value_a
+
+
+def update_keyframe_points(context):
+    """# The select operator(s) are bugged, and can fail to update selected keys(irmitya)"""
+    area = context.area.type
+    if area != 'GRAPH_EDITOR':
+        context.area.type = 'GRAPH_EDITOR'
+
+    bpy.ops.transform.transform()
+
+    if area != 'GRAPH_EDITOR':
+        context.area.type = area
